@@ -1,0 +1,97 @@
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/puj/webpack-dep-finder/main.yml)
+[![NPM Version](https://img.shields.io/npm/v/webpack-dep-finder)](https://www.npmjs.com/package/webpack-dep-finder)
+[![NPM Downloads](https://img.shields.io/npm/dm/webpack-dep-finder)](https://www.npmjs.com/package/webpack-dep-finder)
+[![npm package minimized gzipped size](https://img.shields.io/bundlejs/size/webpack-dep-finder)](https://www.npmjs.com/package/webpack-dep-finder)
+
+<div align="center">
+  <a href="https://github.com/yourusername/webpack-dep-finder">
+    <img width="200" height="200"
+      src="https://github.com/user-attachments/assets/3ff80c8f-b354-4d0f-a417-5d6a2a96ec78">
+  </a>
+  <h1>Webpack Dep Finder</h1>
+  <p>A fast and efficient tool for finding the issuer path to a specific dependency in your Webpack bundles.</p>
+</div>
+
+## Install
+
+```bash
+# NPM
+npm install --save-dev webpack-dep-finder
+# Yarn
+yarn add -D webpack-dep-finder
+```
+
+## Usage
+
+### As a Webpack Plugin
+
+```js
+const WebpackDepFinder = require("webpack-dep-finder");
+
+new WebpackDepFinder({
+    dependencyPattern: /your-regex-pattern/,
+    bail: true // Optional: defaults to true
+});
+```
+
+### As a CLI Utility
+
+You can also use `webpack-dep-finder` as a CLI tool:
+
+```bash
+npx webpack-dep-finder --dependency-pattern /your-regex-pattern/ --config path/to/webpack.config.js
+```
+
+### CLI Options
+
+```bash
+-d, --dependency-pattern <pattern>  Regex pattern to match the resource path/filename to locate. (Required)
+-b, --bail                          Stop searching as soon as the dependency is found. (Default: true)
+-c, --config <path>                 Path to the Webpack configuration file. (Required)
+-V, --version                       Output the version number.
+-h, --help                          Output usage information.
+```
+
+### Example Output
+
+```bash
+Found target dependency: /path/to/your/dependency.js
+/path/to/your/entry-file.js
+  /path/to/another/dependency.js
+    /path/to/your/dependency.js
+```
+
+This output shows the path from the entry file to the target dependency.
+
+## Troubleshooting
+
+### Why is `webpack-dep-finder` so fast?
+
+`webpack-dep-finder` is designed for speed by stopping the search as soon as the specified dependency is found during the Webpack compilation process. This approach contrasts with tools that analyze the entire bundle, making `dep-finder` a quicker option for targeted searches.
+
+### What happens if the dependency is not found?
+
+If the specified dependency isn't found, `webpack-dep-finder` will complete the entire build process without performing any additional analysis. Ensure that the dependency name is correct and that it is included in your Webpack build.
+
+## Other Tools
+
+-   [Statoscope](https://github.com/statoscope/statoscope) - A more comprehensive Webpack bundle analysis tool with additional features like interactive treemaps.
+
+## Maintainers
+
+<table>
+  <tbody>
+    <tr>
+      <td align="center">
+        <img width="150" height="150"
+        src="https://avatars.githubusercontent.com/u/807352?v=4&size=64">
+        </br>
+        <a href="https://github.com/pu">puj</a>
+      </td>
+    </tr>
+  <tbody>
+</table>
+
+## Contributing
+
+We welcome contributions to Webpack Dep Finder! Please see [CONTRIBUTING.md](https://github.com/puj/webpack-dep-finder/blob/master/CONTRIBUTING.md) for more details.
