@@ -25,7 +25,8 @@ describe("WebpackDepFinder", () => {
     it("should initialize correctly", () => {
         const instance = new WebpackDepFinder({ dependencyPattern: /test/ });
         expect(instance.dependencyPattern).toEqual(/test/);
-        expect(instance.bail).toBe(true);
+        expect(instance.haltOnMatch).toBe(true);
+        expect(instance.showWebpackOutput).toBe(false);
     });
 
     it("should start and stop the timer", done => {
@@ -46,7 +47,10 @@ describe("WebpackDepFinder", () => {
         instance.lastResource = "test-resource.js";
         instance.showProgress();
 
-        expect(loggerMock.log).not.toHaveBeenCalled();
+        expect(loggerMock.log).toHaveBeenCalledTimes(3);
+        expect(loggerMock.log).toHaveBeenCalledWith(
+            "Elapsed Time: 0.00s | Resources Scanned: 5 | Processing: test-resource.js"
+        );
     });
 
     it("should analyze a module and find a target dependency", () => {
@@ -67,13 +71,17 @@ describe("WebpackDepFinder", () => {
     });
 
     it("should print inclusion chain correctly", () => {
-        const instance = new WebpackDepFinder({ dependencyPattern: /test/, logger: loggerMock });
+        const instance = new WebpackDepFinder({
+            dependencyPattern: /test/,
+            logger: loggerMock,
+            showWebpackOutput: true
+        });
         const chain = ["module1.js", "module2.js", "module3.js"];
         instance.printInclusionChain(chain);
 
         expect(loggerMock.log).toHaveBeenCalledTimes(3);
-        expect(loggerMock.log).toHaveBeenCalledWith("module1.js");
-        expect(loggerMock.log).toHaveBeenCalledWith("  module2.js");
-        expect(loggerMock.log).toHaveBeenCalledWith("    module3.js");
+        expect(loggerMock.log).toHaveBeenCalledWith("module1.js\n");
+        expect(loggerMock.log).toHaveBeenCalledWith("  module2.js\n");
+        expect(loggerMock.log).toHaveBeenCalledWith("    module3.js\n");
     });
 });
