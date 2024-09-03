@@ -46,7 +46,8 @@ npx webpack-dep-finder --dependency-pattern /your-regex-pattern/ --config path/t
 
 ```bash
 -d, --dependency-pattern <pattern>  Regex pattern to match the resource path/filename to locate. (Required)
--b, --bail                          Stop searching as soon as the dependency is found. (Default: true)
+--no-halt-on-match                  Continue searching even after the dependency is found. (Default: false)
+--show-webpack-output               Display Webpack's build output. (Default: false)
 -c, --config <path>                 Path to the Webpack configuration file. (Default: "webpack.config.js")
 -V, --version                       Output the version number.
 -h, --help                          Output usage information.

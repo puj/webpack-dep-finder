@@ -15,7 +15,7 @@ const configFilenames = [
     // Add more patterns as needed
 ];
 
-async function runWebpackDepFinder({ dependencyPattern, bail, configPath }) {
+async function runWebpackDepFinder({ dependencyPattern, haltOnMatch, configPath, showWebpackOutput }) {
     // Convert the dependency pattern string to a RegExp
     let pattern;
     try {
@@ -57,7 +57,11 @@ async function runWebpackDepFinder({ dependencyPattern, bail, configPath }) {
     }
 
     // Add the WebpackDepFinder plugin to the Webpack configuration
-    const plugin = new WebpackDepFinder({ dependencyPattern: pattern, bail });
+    const plugin = new WebpackDepFinder({
+        dependencyPattern: pattern,
+        haltOnMatch,
+        showWebpackOutput
+    });
     webpackConfig.plugins = webpackConfig.plugins || [];
     webpackConfig.plugins.push(plugin);
 
@@ -131,7 +135,8 @@ if (require.main === module) {
             "-d, --dependency-pattern <pattern>",
             "Regex pattern to match the resource path/filename to locate."
         )
-        .option("-b, --bail", "Stop searching as soon as the dependency is found.", true)
+        .option("--no-halt-on-match", "Continue searching even after the dependency is found.")
+        .option("--show-webpack-output", "Display Webpack's build output.", false)
         .option("-c, --config <path>", "Path to the Webpack configuration file.")
         .version(getVersion())
         .parse(process.argv);
@@ -139,8 +144,9 @@ if (require.main === module) {
     const options = program.opts();
     runWebpackDepFinder({
         dependencyPattern: options.dependencyPattern,
-        bail: options.bail,
-        configPath: options.config
+        haltOnMatch: options.haltOnMatch, // Default is to halt on match
+        configPath: options.config,
+        showWebpackOutput: options.showWebpackOutput // Default is to squelch Webpack output
     });
 }
 
