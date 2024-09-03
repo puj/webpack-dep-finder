@@ -9,36 +9,36 @@
       src="https://github.com/user-attachments/assets/3ff80c8f-b354-4d0f-a417-5d6a2a96ec78">
   </a>
   <h1>Webpack Dep Finder</h1>
-  <p>A fast and efficient tool for finding the issuer path to a specific dependency in your Webpack bundles.</p>
+  <p>A fast and efficient tool for pinpointing the issuer path of a specific dependency in your Webpack bundles.</p>
 </div>
 
-## Install
+<div align="center">
+  <!-- Place for GIF demo -->
+  <img src="path/to/your/demo.gif" alt="Demo" width="600" />
+</div>
+
+### Example Output
 
 ```bash
-# NPM
-npm install --save-dev webpack-dep-finder
-# Yarn
-yarn add -D webpack-dep-finder
+Found target dependency: /path/to/your/dependency.js
+/path/to/your/entry-file.js
+  /path/to/another/dependency.js
+    /path/to/your/dependency.js
 ```
+
+This output shows the path from the entry file to the target dependency.
 
 ## Usage
 
-### As a Webpack Plugin
-
-```js
-const WebpackDepFinder = require("webpack-dep-finder");
-
-new WebpackDepFinder({
-    dependencyPattern: /your-regex-pattern/,
-    bail: true // Optional: defaults to true
-});
-```
-
 ### As a CLI Utility
 
-You can also use `webpack-dep-finder` as a CLI tool:
+You can use `webpack-dep-finder` as a CLI tool:
 
 ```bash
+# Install the package globally
+npm install -g webpack-dep-finder
+
+# Run the CLI tool
 npx webpack-dep-finder --dependency-pattern /your-regex-pattern/ --config path/to/webpack.config.js
 ```
 
@@ -52,22 +52,48 @@ npx webpack-dep-finder --dependency-pattern /your-regex-pattern/ --config path/t
 -h, --help                          Output usage information.
 ```
 
-### Example Output
+### As a Webpack Plugin
 
 ```bash
-Found target dependency: /path/to/your/dependency.js
-/path/to/your/entry-file.js
-  /path/to/another/dependency.js
-    /path/to/your/dependency.js
+# NPM
+npm install --save-dev webpack-dep-finder
+# Yarn
+yarn add -D webpack-dep-finder
 ```
 
-This output shows the path from the entry file to the target dependency.
+```js
+const WebpackDepFinder = require("webpack-dep-finder");
+
+new WebpackDepFinder({
+    dependencyPattern: /your-regex-pattern/,
+    bail: true // Optional: defaults to true
+});
+```
+
+### Performance Insights
+
+**Speed Benefits:**
+
+-   **Up to 100x Faster**: Unlike tools that analyze the entire Webpack build, `webpack-dep-finder` identifies dependencies quickly by stopping the search as soon as the specified dependency is found.
+-   **Conditional Timing**: If the dependency is not found, the tool will run for the entire build duration. The effectiveness can vary based on your project’s size and structure.
+
+**Visualizing Speedup**:
+
+<div align="center">
+  <!-- Place for speedup graph -->
+  <img src="path/to/your/speedup-graph.png" alt="Speedup Graph" width="600" />
+</div>
+
+## Major Use Cases
+
+-   **Optimizing Script Evaluation Time**: Speed up the process of finding and analyzing dependencies, crucial for large React web applications.
+-   **Reducing Bundle Chunk Size**: Efficiently locate and manage dependencies to optimize bundle sizes and overall performance.
 
 ## Troubleshooting
 
 ### Why is `webpack-dep-finder` so fast?
 
-`webpack-dep-finder` is designed for speed by stopping the search as soon as the specified dependency is found during the Webpack compilation process. This approach contrasts with tools that analyze the entire bundle, making `dep-finder` a quicker option for targeted searches.
+`webpack-dep-finder` is designed for speed by stopping the search as soon as the specified dependency is found during the Webpack compilation process. This approach contrasts with tools that analyze the entire bundle, making `webpack-dep-finder` a quicker option for targeted searches.
 
 ### What happens if the dependency is not found?
 
