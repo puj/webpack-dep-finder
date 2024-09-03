@@ -1,28 +1,41 @@
 #!/usr/bin/env node
-
 const { program } = require("commander");
 const path = require("path");
 const fs = require("fs");
 const WebpackDepFinder = require("../lib/plugin");
+const tsNode = require("ts-node");
 
-function runWebpackDepFinder({ dependencyPattern, bail, configPath }) {
+// Array of possible webpack config filenames
+const configFilenames = [
+    "webpack.config.js",
+    "webpack.config.ts",
+    "webpack.config.dev.js",
+    "webpack.config.prod.js",
+    "webpackfile.js"
+    // Add more patterns as needed
+];
+
+async function runWebpackDepFinder({ dependencyPattern, bail, configPath }) {
     // Convert the dependency pattern string to a RegExp
     let pattern;
     try {
         pattern = new RegExp(dependencyPattern);
     } catch (error) {
-        console.error("Error: Invalid regular expression provided for `dependency-pattern`.");
+        console.error("Error: Invalid regular expression provided for dependency-pattern.");
         process.exit(1);
     }
 
-    // Resolve and validate the path to the Webpack config file
-    const resolvedConfigPath = path.resolve(process.cwd(), configPath);
     let webpackConfig;
-    try {
-        webpackConfig = require(resolvedConfigPath);
-    } catch (error) {
-        console.error("Error: Unable to load the Webpack config file. Please ensure it's a valid JavaScript file.");
-        console.error(error);
+    if (configPath) {
+        // If a specific config path is provided, attempt to load it directly
+        webpackConfig = loadWebpackConfig(path.resolve(process.cwd(), configPath));
+    } else {
+        // Attempt to find and load a webpack config using common filenames
+        webpackConfig = findAndLoadWebpackConfig();
+    }
+
+    if (!webpackConfig) {
+        console.error("Error: No valid Webpack configuration found.");
         process.exit(1);
     }
 
@@ -67,6 +80,43 @@ function runWebpackDepFinder({ dependencyPattern, bail, configPath }) {
     });
 }
 
+function loadWebpackConfig(configPath) {
+    try {
+        tsNode.register({ transpileOnly: true }); // Register ts-node for TypeScript support
+        let config = require(configPath);
+
+        // If config is a function, call it
+        if (typeof config === "function") {
+            config = config({});
+        }
+
+        // If config is an array, select the first config (for multi-config setups)
+        if (Array.isArray(config)) {
+            config = config[0];
+        }
+
+        if (typeof config === "object") {
+            return config;
+        } else {
+            throw new Error(`Invalid configuration format in ${configPath}`);
+        }
+    } catch (error) {
+        console.error(`Error loading Webpack config file at ${configPath}:`, error);
+        return null;
+    }
+}
+
+function findAndLoadWebpackConfig() {
+    for (const filename of configFilenames) {
+        const resolvedPath = path.resolve(process.cwd(), filename);
+        if (fs.existsSync(resolvedPath)) {
+            console.log(`Found Webpack config file: ${resolvedPath}`);
+            return loadWebpackConfig(resolvedPath);
+        }
+    }
+    return null;
+}
+
 const getVersion = () => {
     const packageJsonPath = path.resolve(__dirname, "../package.json");
     const packageJson = fs.readFileSync(packageJsonPath, "utf-8");
@@ -82,7 +132,7 @@ if (require.main === module) {
             "Regex pattern to match the resource path/filename to locate."
         )
         .option("-b, --bail", "Stop searching as soon as the dependency is found.", true)
-        .option("-c, --config <path>", "Path to the Webpack configuration file.", "webpack.config.js")
+        .option("-c, --config <path>", "Path to the Webpack configuration file.")
         .version(getVersion())
         .parse(process.argv);
 
