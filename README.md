@@ -47,7 +47,7 @@ npx webpack-dep-finder --dependency-pattern /your-regex-pattern/ --config path/t
 ```bash
 -d, --dependency-pattern <pattern>  Regex pattern to match the resource path/filename to locate. (Required)
 -b, --bail                          Stop searching as soon as the dependency is found. (Default: true)
--c, --config <path>                 Path to the Webpack configuration file. (Required)
+-c, --config <path>                 Path to the Webpack configuration file. (Default: "webpack.config.js")
 -V, --version                       Output the version number.
 -h, --help                          Output usage information.
 ```
@@ -117,6 +117,10 @@ If the specified dependency isn't found, `webpack-dep-finder` will complete the 
     </tr>
   <tbody>
 </table>
+
+## Support the developer!
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/puj_codes)
 
 ## Contributing
 

@@ -1,6 +1,6 @@
 {
 	"name": "webpack-dep-finder",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"description": "A Webpack plugin and CLI tool to find dependencies in your project's modules using regex patterns. Efficiently locate and manage module dependencies with customizable search options.",
 	"repository": {
 		"type": "git",
