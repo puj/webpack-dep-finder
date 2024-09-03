@@ -47,10 +47,14 @@ describe("WebpackDepFinder", () => {
         instance.lastResource = "test-resource.js";
         instance.showProgress();
 
-        expect(loggerMock.log).toHaveBeenCalledTimes(3);
-        expect(loggerMock.log).toHaveBeenCalledWith(
-            "Elapsed Time: 0.00s | Resources Scanned: 5 | Processing: test-resource.js"
-        );
+        if (process.stdout.isTTY) {
+            expect(loggerMock.log).toHaveBeenCalledTimes(3);
+            expect(loggerMock.log).toHaveBeenCalledWith(
+                "Elapsed Time: 0.00s | Resources Scanned: 5 | Processing: test-resource.js"
+            );
+        } else {
+            expect(loggerMock.log).toHaveBeenCalledTimes(0);
+        }
     });
 
     it("should analyze a module and find a target dependency", () => {

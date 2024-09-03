@@ -1,6 +1,6 @@
 {
 	"name": "webpack-dep-finder",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "A Webpack plugin and CLI tool for efficiently pinpointing and analyzing dependencies in your Webpack bundles using regex. Ideal for optimizing and streamlining the build process during iterative development, helping to detangle complex dependency trees quickly.",
 	"repository": {
 		"type": "git",
