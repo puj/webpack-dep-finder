@@ -83,7 +83,12 @@ describe("WebpackDepFinder", () => {
         const chain = ["module1.js", "module2.js", "module3.js"];
         instance.printInclusionChain(chain);
 
-        expect(loggerMock.log).toHaveBeenCalledTimes(3);
+        expect(loggerMock.log).toHaveBeenCalledTimes(8);
+        expect(loggerMock.log).toHaveBeenCalledWith("\n");
+        expect(loggerMock.log).toHaveBeenCalledWith("\n");
+        expect(loggerMock.log).toHaveBeenCalledWith("Target pattern   : '/test/'\n");
+        expect(loggerMock.log).toHaveBeenCalledWith("Matching module  : module3.js\n");
+        expect(loggerMock.log).toHaveBeenCalledWith("Inclusion chain (3 modules):\n");
         expect(loggerMock.log).toHaveBeenCalledWith("module1.js\n");
         expect(loggerMock.log).toHaveBeenCalledWith("  module2.js\n");
         expect(loggerMock.log).toHaveBeenCalledWith("    module3.js\n");
