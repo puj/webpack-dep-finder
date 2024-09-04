@@ -67,7 +67,8 @@ const WebpackDepFinder = require("webpack-dep-finder");
 
 new WebpackDepFinder({
     dependencyPattern: /your-regex-pattern/,
-    bail: true // Optional: defaults to true
+    haltOnMatch: true,
+    showWebpackOutput: false
 });
 ```
 
