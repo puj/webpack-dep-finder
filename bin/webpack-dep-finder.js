@@ -2,6 +2,7 @@
 const { program } = require("commander");
 const path = require("path");
 const fs = require("fs");
+const glob = require("glob");
 const WebpackDepFinder = require("../lib/plugin");
 const tsNode = require("ts-node");
 
@@ -12,11 +13,16 @@ const configFilenames = [
     "webpack.config.dev.js",
     "webpack.config.prod.js",
     "webpackfile.js"
-    // Add more patterns as needed
 ];
 
-async function runWebpackDepFinder({ dependencyPattern, haltOnMatch, configPath, showWebpackOutput }) {
-    // Convert the dependency pattern string to a RegExp
+async function runWebpackDepFinder({
+    dependencyPattern,
+    haltOnMatch,
+    configPath,
+    showWebpackOutput,
+    entryPoint,
+    entryMatch
+}) {
     let pattern;
     try {
         pattern = new RegExp(dependencyPattern);
@@ -25,24 +31,35 @@ async function runWebpackDepFinder({ dependencyPattern, haltOnMatch, configPath,
         process.exit(1);
     }
 
-    let webpackConfig;
-    if (configPath) {
-        // If a specific config path is provided, attempt to load it directly
-        webpackConfig = loadWebpackConfig(path.resolve(process.cwd(), configPath));
-    } else {
-        // Attempt to find and load a webpack config using common filenames
-        webpackConfig = findAndLoadWebpackConfig();
-    }
+    let webpackConfig = configPath
+        ? loadWebpackConfig(path.resolve(process.cwd(), configPath))
+        : findAndLoadWebpackConfig();
 
     if (!webpackConfig) {
         console.error("Error: No valid Webpack configuration found.");
         process.exit(1);
     }
 
-    // Detect the correct version of Webpack to use
+    // If --entry-match is provided, search for matching files
+    if (entryMatch) {
+        const matchedEntry = findMatchingEntry(entryMatch);
+        if (matchedEntry) {
+            webpackConfig.entry = path.resolve(process.cwd(), matchedEntry);
+            console.log(`Using entry point from match: ${webpackConfig.entry}`);
+        } else {
+            console.error(`Error: No entry point matching "${entryMatch}" was found.`);
+            process.exit(1);
+        }
+    } else if (entryPoint) {
+        // Override Webpack's entry point if --entry-point is provided
+        webpackConfig.entry = path.resolve(process.cwd(), entryPoint);
+        console.log(`Using entry point: ${webpackConfig.entry}`);
+    } else {
+        console.log(`Entry point module: ${webpackConfig.entry || webpackConfig.entry}`);
+    }
+
     let Webpack;
     const localWebpackPath = path.resolve(process.cwd(), "node_modules", "webpack");
-
     if (fs.existsSync(localWebpackPath)) {
         console.log("Using local Webpack from", localWebpackPath);
         Webpack = require(localWebpackPath);
@@ -56,18 +73,16 @@ async function runWebpackDepFinder({ dependencyPattern, haltOnMatch, configPath,
         }
     }
 
-    // Add the WebpackDepFinder plugin to the Webpack configuration
     const plugin = new WebpackDepFinder({
         dependencyPattern: pattern,
-        haltOnMatch,
-        showWebpackOutput
+        bail: haltOnMatch,
+        squelchWebpackOutput: !showWebpackOutput
     });
+
     webpackConfig.plugins = webpackConfig.plugins || [];
     webpackConfig.plugins.push(plugin);
 
-    // Trigger the Webpack compilation process
     const compiler = Webpack(webpackConfig);
-
     compiler.run((err, stats) => {
         if (err) {
             console.error("Error during the Webpack compilation:", err);
@@ -86,24 +101,11 @@ async function runWebpackDepFinder({ dependencyPattern, haltOnMatch, configPath,
 
 function loadWebpackConfig(configPath) {
     try {
-        tsNode.register({ transpileOnly: true }); // Register ts-node for TypeScript support
+        tsNode.register({ transpileOnly: true });
         let config = require(configPath);
-
-        // If config is a function, call it
-        if (typeof config === "function") {
-            config = config({});
-        }
-
-        // If config is an array, select the first config (for multi-config setups)
-        if (Array.isArray(config)) {
-            config = config[0];
-        }
-
-        if (typeof config === "object") {
-            return config;
-        } else {
-            throw new Error(`Invalid configuration format in ${configPath}`);
-        }
+        if (typeof config === "function") config = config({});
+        if (Array.isArray(config)) config = config[0];
+        return config;
     } catch (error) {
         console.error(`Error loading Webpack config file at ${configPath}:`, error);
         return null;
@@ -121,6 +123,20 @@ function findAndLoadWebpackConfig() {
     return null;
 }
 
+function findMatchingEntry(entryMatch) {
+    // Convert entryMatch to a case-insensitive regex if it's not already a regex
+    const regex = new RegExp(entryMatch, "i");
+
+    // Search for files that match the given pattern in the source folder
+    const matches = glob.sync("**/*", {
+        cwd: path.resolve(process.cwd(), "src"), // Search within src directory
+        nodir: true // Ensure we only get files, not directories
+    });
+
+    // Find the first matching file based on the regex
+    return matches.find(file => regex.test(file));
+}
+
 const getVersion = () => {
     const packageJsonPath = path.resolve(__dirname, "../package.json");
     const packageJson = fs.readFileSync(packageJsonPath, "utf-8");
@@ -128,7 +144,7 @@ const getVersion = () => {
     return pkg.version;
 };
 
-// Only run the CLI parsing when the script is executed directly
+// CLI Command Parsing
 if (require.main === module) {
     program
         .requiredOption(
@@ -136,17 +152,21 @@ if (require.main === module) {
             "Regex pattern to match the resource path/filename to locate."
         )
         .option("--no-halt-on-match", "Continue searching even after the dependency is found.")
-        .option("--show-webpack-output", "Display Webpack's build output.", false)
+        .option("--show-webpack-output", "Display Webpack's build output.")
         .option("-c, --config <path>", "Path to the Webpack configuration file.")
+        .option("--entry-point <path>", "Specify an entry point to begin the search from.")
+        .option("--entry-match <pattern>", "Specify a regex or partial string to match the entry point filename.")
         .version(getVersion())
         .parse(process.argv);
 
     const options = program.opts();
     runWebpackDepFinder({
         dependencyPattern: options.dependencyPattern,
-        haltOnMatch: options.haltOnMatch, // Default is to halt on match
+        haltOnMatch: !options.noHaltOnMatch,
         configPath: options.config,
-        showWebpackOutput: options.showWebpackOutput // Default is to squelch Webpack output
+        showWebpackOutput: options.showWebpackOutput,
+        entryPoint: options.entryPoint,
+        entryMatch: options.entryMatch
     });
 }
 
