@@ -42,15 +42,22 @@ npm install -g webpack-dep-finder
 npx webpack-dep-finder --dependency-pattern /your-regex-pattern/ --config path/to/webpack.config.js
 ```
 
+#### New Features
+
+-   **Specify an entry point**: You can specify an entry point using the `--entry-point` option or search for an entry point using a partial string or regex match with `--entry-match`.
+-   **Override `ts-loader`**: If `ts-loader` is detected, it is automatically overridden to use `transpileOnly: true` to speed up TypeScript builds during dependency scanning.
+
 ### CLI Options
 
 ```bash
--d, --dependency-pattern <pattern>  Regex pattern to match the resource path/filename to locate. (Required)
---no-halt-on-match                  Continue searching even after the dependency is found. (Default: false)
---show-webpack-output               Display Webpack's build output. (Default: false)
--c, --config <path>                 Path to the Webpack configuration file. (Default: "webpack.config.js")
--V, --version                       Output the version number.
--h, --help                          Output usage information.
+-d, --dependency-pattern <pattern>   Regex pattern to match the resource path/filename to locate. (Required)
+--no-halt-on-match                   Continue searching even after the dependency is found. (Default: false)
+--show-webpack-output                Display Webpack's build output. (Default: false)
+-c, --config <path>                  Path to the Webpack configuration file. (Default: "webpack.config.js")
+--entry-point <path>                 Specify an entry point to begin the search from.
+--entry-match <pattern>              Specify a regex or partial string to match the entry point filename.
+-V, --version                        Output the version number.
+-h, --help                           Output usage information.
 ```
 
 ### As a Webpack Plugin

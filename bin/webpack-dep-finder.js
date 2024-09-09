@@ -40,7 +40,7 @@ async function runWebpackDepFinder({
         process.exit(1);
     }
 
-    // If --entry-match is provided, search for matching files
+    // Override Webpack's entry point if --entry-match or --entry-point is provided
     if (entryMatch) {
         const matchedEntry = findMatchingEntry(entryMatch);
         if (matchedEntry) {
@@ -51,11 +51,23 @@ async function runWebpackDepFinder({
             process.exit(1);
         }
     } else if (entryPoint) {
-        // Override Webpack's entry point if --entry-point is provided
         webpackConfig.entry = path.resolve(process.cwd(), entryPoint);
         console.log(`Using entry point: ${webpackConfig.entry}`);
     } else {
-        console.log(`Entry point module: ${webpackConfig.entry || webpackConfig.entry}`);
+        console.log(`Entry point module: ${webpackConfig.entry}`);
+    }
+
+    // Modify ts-loader settings to use `transpileOnly: true`
+    if (webpackConfig.module && webpackConfig.module.rules) {
+        webpackConfig.module.rules.forEach(rule => {
+            if (rule.use && rule.use.loader === "ts-loader") {
+                console.log("Overriding ts-loader to use transpileOnly: true");
+                rule.use.options = {
+                    ...rule.use.options,
+                    transpileOnly: true
+                };
+            }
+        });
     }
 
     let Webpack;
